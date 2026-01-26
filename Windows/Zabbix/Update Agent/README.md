@@ -1,6 +1,3 @@
-# README.md - Version corrigée GPLv3
-
-```markdown
 # 🛡️ Zabbix Agent 2 - Deployment & Update Tool
 
 Script PowerShell de pilotage centralisé pour le déploiement et la mise à jour de Zabbix Agent 2 sur un parc Windows via Active Directory.
@@ -114,7 +111,7 @@ New-Item -ItemType Directory -Path "$basePath\Reports" -Force
 ```
 \\DOMAIN\NETLOGON\ZabbixUpdate\
 │
-├── Deploy-ZabbixAgent.ps1              # Script principal
+├── Update_Zabbix.ps1              # Script principal
 │
 ├── Packages\
 │   ├── zabbix_agent2-7.0.6-windows-amd64.msi
@@ -141,7 +138,7 @@ Invoke-WebRequest -Uri $url -OutFile $output
 
 ### Paramètres principaux
 
-Ouvrez le script `Deploy-ZabbixAgent.ps1` et modifiez la section `$Script:Config` :
+Ouvrez le script `Update_Zabbix.ps1` et modifiez la section `$Script:Config` :
 
 ```powershell
 $Script:Config = @{
@@ -194,10 +191,10 @@ Si vous utilisez un fichier MST pour personnaliser l'installation :
 
 ```powershell
 # Depuis le DC ou une station d'administration (en tant qu'administrateur)
-\\DOMAIN\NETLOGON\ZabbixUpdate\Deploy-ZabbixAgent.ps1
+\\DOMAIN\NETLOGON\ZabbixUpdate\Update_Zabbix.ps1
 
 # Ou en local si copié
-.\Deploy-ZabbixAgent.ps1
+.\Update_Zabbix.ps1
 ```
 
 ### Menu principal
@@ -351,7 +348,7 @@ Exporte vers: \\DOMAIN\NETLOGON\ZabbixUpdate\Reports\Inventory_20250115_103500.c
 ```
 \\DOMAIN\NETLOGON\ZabbixUpdate\
 │
-├── Deploy-ZabbixAgent.ps1           # Script principal
+├── Update_Zabbix.ps1           # Script principal
 ├── README.md                        # Cette documentation
 │
 ├── Packages\
