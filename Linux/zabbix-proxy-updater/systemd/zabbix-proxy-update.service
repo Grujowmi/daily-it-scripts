@@ -1,0 +1,9 @@
+[Unit]
+Description=Mise à jour automatique Zabbix Proxy
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/update-zabbix-proxy.sh
+StandardOutput=journal
+StandardError=journal
