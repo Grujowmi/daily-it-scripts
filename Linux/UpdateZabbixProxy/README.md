@@ -138,7 +138,7 @@ sudo crontab -e
 Pour pousser le script et la configuration sur l'ensemble de vos proxies en une seule commande :
 
 ```bash
-for proxy in proxy-nimes proxy-ales; do
+for proxy in proxy-X1 proxy-x2; do
   echo "=== Déploiement sur $proxy ==="
   scp /usr/local/sbin/update-zabbix-proxy.sh root@${proxy}:/usr/local/sbin/
   ssh root@${proxy} "
