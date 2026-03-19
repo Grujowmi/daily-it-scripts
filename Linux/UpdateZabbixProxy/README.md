@@ -232,4 +232,6 @@ zabbix-proxy-updater/
 
 ## 📄 Licence
 
-MIT — libre d'utilisation et de modification.
+GPL v3
+
+Attention, le script peut affichier une erreur en fin selon la langue de l'OS.
