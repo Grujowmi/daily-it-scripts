@@ -31,8 +31,8 @@ Conçu pour fonctionner en mode **entièrement non-interactif** : conserve syst�
 ### 1. Cloner le dépôt
 
 ```bash
-git clone https://github.com/<votre-user>/zabbix-proxy-updater.git
-cd zabbix-proxy-updater
+git clone https://github.com/Grujowmi/daily-it-scripts.git
+cd daily-it-scripts/Linux/zabbix-proxy-updater
 ```
 
 ### 2. Copier le script
