@@ -64,7 +64,8 @@ Pushez vers la branche (git push origin ajout-script-backup).
 Ouvrez une Pull Request.
 Merci de vous assurer que vos scripts sont commentés et documentés un minimum en en-tête.
 
-📜 Licence
+## 📜 Licence
+
 Ce projet est sous licence GPL v3
 Créé et maintenu par Grujowmi.
 
