@@ -31,7 +31,7 @@ Pour récupérer l'ensemble des scripts sur votre machine locale :
 ```bash
 git clone https://github.com/Grujowmi/daily-it-scripts.git
 cd daily-it-scripts
-
+` ``` `
 ### 1. Exécution
 **Pour les scripts Linux (Bash) :**
 N'oubliez pas de rendre le script exécutable avant de le lancer.
@@ -39,13 +39,13 @@ N'oubliez pas de rendre le script exécutable avant de le lancer.
 ```bash
 chmod +x chemin/vers/le/script.sh
 ./chemin/vers/le/script.sh
-
+` ``` `
 **Pour les scripts Windows (PowerShell) :**
 Il se peut que vous deviez autoriser l'exécution des scripts sur votre machine :
 ```powershell
 Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
 .\chemin\vers\le\script.ps1
-
+` ``` `
 ## ⚠️ Avertissement de sécurité
 
 > [!WARNING]
