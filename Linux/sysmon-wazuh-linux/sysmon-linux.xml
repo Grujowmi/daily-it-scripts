@@ -1,0 +1,174 @@
+<Sysmon schemaversion="4.70">
+  <!--
+    ============================================================
+    Sysmon for Linux - Oncogard - Production
+    Stratégie : capturer peu mais capturer ce qui compte
+    Faux positifs gérés côté Wazuh rules, pas ici
+    ============================================================
+  -->
+
+  <HashAlgorithms>sha256</HashAlgorithms>
+
+  <EventFiltering>
+
+    <!-- ===========================================================
+         EVENT ID 1 - ProcessCreate
+         =========================================================== -->
+    <RuleGroup name="" groupRelation="or">
+      <ProcessCreate onmatch="include">
+        <Image condition="begin with">/tmp/</Image>
+        <Image condition="begin with">/dev/shm/</Image>
+        <Image condition="begin with">/var/tmp/</Image>
+        <CommandLine condition="contains">/dev/tcp/</CommandLine>
+        <CommandLine condition="contains">/dev/udp/</CommandLine>
+        <CommandLine condition="contains">nc -e</CommandLine>
+        <CommandLine condition="contains">ncat -e</CommandLine>
+        <CommandLine condition="contains">bash -i</CommandLine>
+        <CommandLine condition="contains">sh -i</CommandLine>
+        <CommandLine condition="contains">LD_PRELOAD</CommandLine>
+        <CommandLine condition="contains">base64 -d</CommandLine>
+        <CommandLine condition="contains">base64 --decode</CommandLine>
+        <CommandLine condition="contains">python -c</CommandLine>
+        <CommandLine condition="contains">python3 -c</CommandLine>
+        <CommandLine condition="contains">perl -e</CommandLine>
+        <CommandLine condition="contains">visudo</CommandLine>
+        <CommandLine condition="contains">useradd</CommandLine>
+        <CommandLine condition="contains">adduser</CommandLine>
+        <CommandLine condition="contains">usermod</CommandLine>
+        <CommandLine condition="contains">setcap</CommandLine>
+        <CommandLine condition="contains">insmod</CommandLine>
+        <CommandLine condition="contains">modprobe</CommandLine>
+        <CommandLine condition="contains">nsenter</CommandLine>
+      </ProcessCreate>
+    </RuleGroup>
+
+    <RuleGroup name="" groupRelation="or">
+      <ProcessCreate onmatch="exclude">
+        <Image condition="begin with">/var/ossec/bin/</Image>
+        <ParentImage condition="begin with">/var/ossec/bin/</ParentImage>
+        <Image condition="begin with">/usr/sbin/zabbix</Image>
+        <ParentImage condition="begin with">/usr/sbin/zabbix</ParentImage>
+        <Image condition="is">/usr/bin/apt</Image>
+        <Image condition="is">/usr/bin/apt-get</Image>
+        <Image condition="is">/usr/bin/dpkg</Image>
+      </ProcessCreate>
+    </RuleGroup>
+
+    <!-- ===========================================================
+         EVENT ID 3 - NetworkConnect
+         =========================================================== -->
+    <RuleGroup name="" groupRelation="or">
+      <NetworkConnect onmatch="include">
+        <Image condition="begin with">/tmp/</Image>
+        <Image condition="begin with">/dev/shm/</Image>
+        <Image condition="begin with">/var/tmp/</Image>
+        <Image condition="end with">/bash</Image>
+        <Image condition="end with">/sh</Image>
+        <Image condition="end with">/dash</Image>
+        <Image condition="end with">/python</Image>
+        <Image condition="end with">/python3</Image>
+        <Image condition="end with">/perl</Image>
+        <Image condition="end with">/ruby</Image>
+        <Image condition="end with">/php</Image>
+        <Image condition="begin with">/home/</Image>
+        <Image condition="begin with">/root/</Image>
+      </NetworkConnect>
+    </RuleGroup>
+
+    <RuleGroup name="" groupRelation="or">
+      <NetworkConnect onmatch="exclude">
+        <DestinationPort condition="is">53</DestinationPort>
+        <DestinationPort condition="is">123</DestinationPort>
+        <DestinationPort condition="is">1514</DestinationPort>
+        <DestinationPort condition="is">1515</DestinationPort>
+        <DestinationPort condition="is">10051</DestinationPort>
+        <DestinationIp condition="is">127.0.0.1</DestinationIp>
+        <DestinationIp condition="is">::1</DestinationIp>
+        <Image condition="begin with">/var/ossec/bin/</Image>
+        <Image condition="is">/usr/lib/apt/methods/http</Image>
+        <Image condition="is">/usr/lib/apt/methods/https</Image>
+      </NetworkConnect>
+    </RuleGroup>
+
+    <!-- ===========================================================
+         EVENT ID 11 - FileCreate
+         =========================================================== -->
+    <RuleGroup name="" groupRelation="or">
+      <FileCreate onmatch="include">
+        <TargetFilename condition="is">/etc/sudoers</TargetFilename>
+        <TargetFilename condition="begin with">/etc/sudoers.d/</TargetFilename>
+        <TargetFilename condition="is">/etc/passwd</TargetFilename>
+        <TargetFilename condition="is">/etc/shadow</TargetFilename>
+        <TargetFilename condition="end with">authorized_keys</TargetFilename>
+        <TargetFilename condition="end with">id_rsa</TargetFilename>
+        <TargetFilename condition="end with">id_ed25519</TargetFilename>
+        <TargetFilename condition="begin with">/etc/cron</TargetFilename>
+        <TargetFilename condition="begin with">/var/spool/cron/</TargetFilename>
+        <TargetFilename condition="begin with">/etc/systemd/system/</TargetFilename>
+        <TargetFilename condition="begin with">/lib/systemd/system/</TargetFilename>
+        <TargetFilename condition="begin with">/etc/pam.d/</TargetFilename>
+        <TargetFilename condition="end with">.ko</TargetFilename>
+        <TargetFilename condition="begin with">/tmp/</TargetFilename>
+        <TargetFilename condition="begin with">/dev/shm/</TargetFilename>
+      </FileCreate>
+    </RuleGroup>
+
+    <RuleGroup name="" groupRelation="or">
+      <FileCreate onmatch="exclude">
+        <TargetFilename condition="end with">.swp</TargetFilename>
+        <TargetFilename condition="end with">.tmp</TargetFilename>
+        <TargetFilename condition="end with">~</TargetFilename>
+        <TargetFilename condition="end with">.dpkg-new</TargetFilename>
+        <TargetFilename condition="end with">.dpkg-old</TargetFilename>
+        <TargetFilename condition="end with">.pid</TargetFilename>
+        <TargetFilename condition="end with">.lock</TargetFilename>
+        <TargetFilename condition="begin with">/var/cache/apt/</TargetFilename>
+        <Image condition="begin with">/var/ossec/bin/</Image>
+        <Image condition="is">/usr/sbin/logrotate</Image>
+        <Image condition="begin with">/usr/sbin/zabbix</Image>
+      </FileCreate>
+    </RuleGroup>
+
+    <!-- ===========================================================
+         EVENT ID 23 - FileDelete
+         =========================================================== -->
+    <RuleGroup name="" groupRelation="or">
+      <FileDelete onmatch="include">
+        <TargetFilename condition="is">/var/log/auth.log</TargetFilename>
+        <TargetFilename condition="is">/var/log/syslog</TargetFilename>
+        <TargetFilename condition="is">/var/log/wtmp</TargetFilename>
+        <TargetFilename condition="is">/var/log/btmp</TargetFilename>
+        <TargetFilename condition="is">/var/log/lastlog</TargetFilename>
+        <TargetFilename condition="end with">.bash_history</TargetFilename>
+        <TargetFilename condition="end with">.zsh_history</TargetFilename>
+        <TargetFilename condition="end with">.history</TargetFilename>
+        <TargetFilename condition="end with">authorized_keys</TargetFilename>
+        <TargetFilename condition="begin with">/etc/ssh/</TargetFilename>
+        <TargetFilename condition="begin with">/etc/sudoers</TargetFilename>
+      </FileDelete>
+    </RuleGroup>
+
+    <RuleGroup name="" groupRelation="or">
+      <FileDelete onmatch="exclude">
+        <Image condition="is">/usr/sbin/logrotate</Image>
+        <Image condition="begin with">/var/ossec/bin/</Image>
+        <TargetFilename condition="end with">.tmp</TargetFilename>
+        <TargetFilename condition="end with">.lock</TargetFilename>
+        <TargetFilename condition="end with">.pid</TargetFilename>
+        <TargetFilename condition="end with">~</TargetFilename>
+      </FileDelete>
+    </RuleGroup>
+
+    <!-- ===========================================================
+         EVENT ID 5 - ProcessTerminate
+         =========================================================== -->
+    <RuleGroup name="" groupRelation="or">
+      <ProcessTerminate onmatch="include">
+        <Image condition="begin with">/tmp/</Image>
+        <Image condition="begin with">/dev/shm/</Image>
+        <Image condition="begin with">/var/tmp/</Image>
+      </ProcessTerminate>
+    </RuleGroup>
+
+  </EventFiltering>
+</Sysmon>

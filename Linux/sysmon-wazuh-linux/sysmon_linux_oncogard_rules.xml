@@ -1,0 +1,271 @@
+<group name="linux,sysmon,oncogard,">
+
+  <!-- ================================================================
+       SYSMON LINUX - RULES ONCOGARD
+       Plage IDs : 201000-201099
+       Basées sur les rules de base 200150-200202 (sysmon_linux_rules.xml)
+       ================================================================ -->
+
+  <!-- ================================================================
+       EVENT ID 1 - ProcessCreate
+       ================================================================ -->
+
+  <!-- Exécution depuis tmpfs -->
+  <rule id="201001" level="13">
+    <if_sid>200151</if_sid>
+    <field name="eventdata.image" type="pcre2">^/(tmp|dev/shm|var/tmp)/</field>
+    <description>Sysmon Linux - Exécution depuis répertoire temporaire : $(eventdata.image)</description>
+    <mitre>
+      <id>T1059</id>
+    </mitre>
+    <group>sysmon_event1,execution_suspicious,</group>
+  </rule>
+
+  <!-- Reverse shell -->
+  <rule id="201002" level="15">
+    <if_sid>200151</if_sid>
+    <field name="eventdata.commandLine" type="pcre2">/dev/tcp/|/dev/udp/|nc -e|ncat -e|bash -i|sh -i</field>
+    <description>Sysmon Linux - Reverse shell détecté : $(eventdata.commandLine)</description>
+    <mitre>
+      <id>T1059.004</id>
+    </mitre>
+    <group>sysmon_event1,reverse_shell,</group>
+  </rule>
+
+  <!-- LD_PRELOAD injection -->
+  <rule id="201003" level="14">
+    <if_sid>200151</if_sid>
+    <field name="eventdata.commandLine" type="pcre2">LD_PRELOAD</field>
+    <description>Sysmon Linux - LD_PRELOAD injection : $(eventdata.commandLine)</description>
+    <mitre>
+      <id>T1574.006</id>
+    </mitre>
+    <group>sysmon_event1,injection,</group>
+  </rule>
+
+  <!-- Obfuscation base64 -->
+  <rule id="201004" level="12">
+    <if_sid>200151</if_sid>
+    <field name="eventdata.commandLine" type="pcre2">base64 (-d|--decode)</field>
+    <description>Sysmon Linux - Décodage base64 en ligne de commande : $(eventdata.commandLine)</description>
+    <mitre>
+      <id>T1027</id>
+    </mitre>
+    <group>sysmon_event1,obfuscation,</group>
+  </rule>
+
+  <!-- Interpréteurs avec code inline -->
+  <rule id="201005" level="12">
+    <if_sid>200151</if_sid>
+    <field name="eventdata.commandLine" type="pcre2">python[23]? -c |perl -e |ruby -e </field>
+    <description>Sysmon Linux - Code inline via interpréteur : $(eventdata.commandLine)</description>
+    <mitre>
+      <id>T1059</id>
+    </mitre>
+    <group>sysmon_event1,execution_suspicious,</group>
+  </rule>
+
+  <!-- Modification utilisateurs / privilèges -->
+  <rule id="201006" level="12">
+    <if_sid>200151</if_sid>
+    <field name="eventdata.commandLine" type="pcre2">useradd |adduser |usermod |visudo|setcap |nsenter</field>
+    <description>Sysmon Linux - Modification utilisateur ou privilèges : $(eventdata.commandLine)</description>
+    <mitre>
+      <id>T1136</id>
+    </mitre>
+    <group>sysmon_event1,privilege_escalation,</group>
+  </rule>
+
+  <!-- Kernel modules -->
+  <rule id="201007" level="13">
+    <if_sid>200151</if_sid>
+    <field name="eventdata.commandLine" type="pcre2">insmod |modprobe </field>
+    <description>Sysmon Linux - Chargement de module kernel : $(eventdata.commandLine)</description>
+    <mitre>
+      <id>T1547.006</id>
+    </mitre>
+    <group>sysmon_event1,persistence,</group>
+  </rule>
+
+  <!-- ================================================================
+       EVENT ID 3 - NetworkConnect
+       ================================================================ -->
+
+  <!-- Connexion réseau depuis tmpfs -->
+  <rule id="201010" level="15">
+    <if_sid>200152</if_sid>
+    <field name="eventdata.image" type="pcre2">^/(tmp|dev/shm|var/tmp)/</field>
+    <description>Sysmon Linux - Connexion réseau depuis répertoire temporaire : $(eventdata.image) → $(eventdata.DestinationIp):$(eventdata.destinationPort)</description>
+    <mitre>
+      <id>T1071</id>
+    </mitre>
+    <group>sysmon_event3,c2,</group>
+  </rule>
+
+  <!-- Shell avec connexion réseau sortante -->
+  <rule id="201011" level="13">
+    <if_sid>200152</if_sid>
+    <field name="eventdata.image" type="pcre2">/(bash|sh|dash|zsh)$</field>
+    <description>Sysmon Linux - Shell avec connexion réseau sortante : $(eventdata.image) → $(eventdata.DestinationIp):$(eventdata.destinationPort)</description>
+    <mitre>
+      <id>T1059.004</id>
+    </mitre>
+    <group>sysmon_event3,reverse_shell,</group>
+  </rule>
+
+  <!-- Interpréteur avec connexion réseau -->
+  <rule id="201012" level="12">
+    <if_sid>200152</if_sid>
+    <field name="eventdata.image" type="pcre2">/(python[23]?|perl|ruby|php)$</field>
+    <description>Sysmon Linux - Connexion réseau via interpréteur : $(eventdata.image) → $(eventdata.DestinationIp):$(eventdata.destinationPort)</description>
+    <mitre>
+      <id>T1071</id>
+    </mitre>
+    <group>sysmon_event3,c2,</group>
+  </rule>
+
+  <!-- Connexion depuis /home ou /root -->
+  <rule id="201013" level="10">
+    <if_sid>200152</if_sid>
+    <field name="eventdata.image" type="pcre2">^/(home|root)/</field>
+    <description>Sysmon Linux - Connexion réseau depuis répertoire utilisateur : $(eventdata.image) → $(eventdata.DestinationIp):$(eventdata.destinationPort)</description>
+    <mitre>
+      <id>T1071</id>
+    </mitre>
+    <group>sysmon_event3,network_suspicious,</group>
+  </rule>
+
+  <!-- ================================================================
+       EVENT ID 5 - ProcessTerminate
+       ================================================================ -->
+
+  <!-- Process tmpfs terminé (trace d'exécution furtive) -->
+  <rule id="201020" level="10">
+    <if_sid>200153</if_sid>
+    <field name="eventdata.image" type="pcre2">^/(tmp|dev/shm|var/tmp)/</field>
+    <description>Sysmon Linux - Fin de process depuis répertoire temporaire : $(eventdata.image)</description>
+    <mitre>
+      <id>T1059</id>
+    </mitre>
+    <group>sysmon_event5,execution_suspicious,</group>
+  </rule>
+
+  <!-- ================================================================
+       EVENT ID 11 - FileCreate
+       ================================================================ -->
+
+  <!-- Fichiers de persistance critiques -->
+  <rule id="201030" level="14">
+    <if_sid>200155</if_sid>
+    <field name="eventdata.targetFilename" type="pcre2">^/etc/(sudoers|sudoers\.d/|passwd$|shadow$)</field>
+    <description>Sysmon Linux - Fichier système critique modifié : $(eventdata.targetFilename) par $(eventdata.image)</description>
+    <mitre>
+      <id>T1548</id>
+    </mitre>
+    <group>sysmon_event_11,persistence,</group>
+  </rule>
+
+  <!-- Clé SSH -->
+  <rule id="201031" level="13">
+    <if_sid>200155</if_sid>
+    <field name="eventdata.targetFilename" type="pcre2">authorized_keys$|id_rsa$|id_ed25519$</field>
+    <description>Sysmon Linux - Fichier SSH sensible créé/modifié : $(eventdata.targetFilename) par $(eventdata.image)</description>
+    <mitre>
+      <id>T1098.004</id>
+    </mitre>
+    <group>sysmon_event_11,persistence,</group>
+  </rule>
+
+  <!-- Cron -->
+  <rule id="201032" level="12">
+    <if_sid>200155</if_sid>
+    <field name="eventdata.targetFilename" type="pcre2">^/etc/cron|^/var/spool/cron/</field>
+    <description>Sysmon Linux - Tâche cron créée/modifiée : $(eventdata.targetFilename) par $(eventdata.image)</description>
+    <mitre>
+      <id>T1053.003</id>
+    </mitre>
+    <group>sysmon_event_11,persistence,</group>
+  </rule>
+
+  <!-- Nouveau service systemd -->
+  <rule id="201033" level="12">
+    <if_sid>200155</if_sid>
+    <field name="eventdata.targetFilename" type="pcre2">^/(etc|lib)/systemd/system/</field>
+    <description>Sysmon Linux - Nouveau service systemd créé : $(eventdata.targetFilename) par $(eventdata.image)</description>
+    <mitre>
+      <id>T1543.002</id>
+    </mitre>
+    <group>sysmon_event_11,persistence,</group>
+  </rule>
+
+  <!-- PAM -->
+  <rule id="201034" level="13">
+    <if_sid>200155</if_sid>
+    <field name="eventdata.targetFilename" type="pcre2">^/etc/pam\.d/</field>
+    <description>Sysmon Linux - Configuration PAM modifiée : $(eventdata.targetFilename) par $(eventdata.image)</description>
+    <mitre>
+      <id>T1556</id>
+    </mitre>
+    <group>sysmon_event_11,persistence,</group>
+  </rule>
+
+  <!-- Module kernel -->
+  <rule id="201035" level="14">
+    <if_sid>200155</if_sid>
+    <field name="eventdata.targetFilename" type="pcre2">\.ko$</field>
+    <description>Sysmon Linux - Module kernel créé : $(eventdata.targetFilename) par $(eventdata.image)</description>
+    <mitre>
+      <id>T1547.006</id>
+    </mitre>
+    <group>sysmon_event_11,persistence,</group>
+  </rule>
+
+  <!-- Script dans tmpfs -->
+  <rule id="201036" level="11">
+    <if_sid>200155</if_sid>
+    <field name="eventdata.targetFilename" type="pcre2">^/(tmp|dev/shm)/</field>
+    <description>Sysmon Linux - Fichier créé dans répertoire temporaire : $(eventdata.targetFilename) par $(eventdata.image)</description>
+    <mitre>
+      <id>T1059</id>
+    </mitre>
+    <group>sysmon_event_11,execution_suspicious,</group>
+  </rule>
+
+  <!-- ================================================================
+       EVENT ID 23 - FileDelete
+       ================================================================ -->
+
+  <!-- Suppression de logs (anti-forensics) -->
+  <rule id="201040" level="14">
+    <if_sid>200157</if_sid>
+    <field name="eventdata.targetFilename" type="pcre2">^/var/log/(auth\.log|syslog|wtmp|btmp|lastlog)$</field>
+    <description>Sysmon Linux - Suppression de log système (anti-forensics) : $(eventdata.targetFilename) par $(eventdata.image)</description>
+    <mitre>
+      <id>T1070.002</id>
+    </mitre>
+    <group>sysmon_event_23,anti_forensics,</group>
+  </rule>
+
+  <!-- Suppression historique shell -->
+  <rule id="201041" level="13">
+    <if_sid>200157</if_sid>
+    <field name="eventdata.targetFilename" type="pcre2">\.(bash_history|zsh_history|history)$</field>
+    <description>Sysmon Linux - Suppression d'historique shell : $(eventdata.targetFilename) par $(eventdata.image)</description>
+    <mitre>
+      <id>T1070.003</id>
+    </mitre>
+    <group>sysmon_event_23,anti_forensics,</group>
+  </rule>
+
+  <!-- Suppression config SSH / sudoers -->
+  <rule id="201042" level="14">
+    <if_sid>200157</if_sid>
+    <field name="eventdata.targetFilename" type="pcre2">^/etc/ssh/|^/etc/sudoers|authorized_keys$</field>
+    <description>Sysmon Linux - Suppression fichier SSH/sudoers : $(eventdata.targetFilename) par $(eventdata.image)</description>
+    <mitre>
+      <id>T1070</id>
+    </mitre>
+    <group>sysmon_event_23,anti_forensics,</group>
+  </rule>
+
+</group>
