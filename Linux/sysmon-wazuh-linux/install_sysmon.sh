@@ -1,8 +1,8 @@
 #!/bin/bash
 # =============================================================================
-# install_sysmon.sh - Installation Sysmon for Linux
+# install_sysmon.sh - Installation Sysmon for Linux (Oncogard)
 # Compatible : Debian 11/12/13, Ubuntu 22.04/24.04
-# Author: Grujowmi
+#
 # Stratégie :
 #   - Debian 11/12 + Ubuntu : repo Microsoft (apt)
 #   - Debian 13 (Trixie)    : .deb directs depuis GitHub
@@ -17,6 +17,11 @@ WATCHER_SCRIPT="/usr/local/bin/sysmon-watcher.sh"
 SERVICE_FILE="/etc/systemd/system/sysmon-watcher.service"
 
 log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG"; }
+
+# -----------------------------------------------------------------------------
+# 0. Forcer le PATH complet (évite les erreurs ldconfig/start-stop-daemon)
+# -----------------------------------------------------------------------------
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 # -----------------------------------------------------------------------------
 # 0. Root check
@@ -54,18 +59,30 @@ apt-get install -y -qq curl wget inotify-tools apt-transport-https libxml2-utils
 install_via_microsoft_repo() {
     local DISTRO="$1" VERSION="$2"
     log "Méthode : repo Microsoft (${DISTRO} ${VERSION})..."
+
     wget -q "https://packages.microsoft.com/config/${DISTRO}/${VERSION}/packages-microsoft-prod.deb" \
-        -O /tmp/packages-microsoft-prod.deb
-    dpkg -i /tmp/packages-microsoft-prod.deb >> "$LOG" 2>&1
+        -O /tmp/packages-microsoft-prod.deb || { log "WARN: Téléchargement repo MS échoué."; return 1; }
+
+    dpkg -i /tmp/packages-microsoft-prod.deb >> "$LOG" 2>&1 || { log "WARN: Installation repo MS échouée."; return 1; }
+
     apt-get update -qq
-    apt-get install -y sysinternalsebpf >> "$LOG" 2>&1
-    apt-get install -y sysmonforlinux   >> "$LOG" 2>&1
+
+    if ! apt-get install -y sysinternalsebpf >> "$LOG" 2>&1; then
+        log "WARN: sysinternalsebpf introuvable via repo MS."
+        return 1
+    fi
+
+    if ! apt-get install -y sysmonforlinux >> "$LOG" 2>&1; then
+        log "WARN: sysmonforlinux introuvable via repo MS."
+        return 1
+    fi
+
+    return 0
 }
 
 install_via_github() {
-    log "Méthode : GitHub .deb (Debian 13+, repo MS non supporté)..."
+    log "Méthode : GitHub .deb (repo MS indisponible ou clé expirée)..."
 
-    # libssl-dev disponible dans les repos Debian standards
     apt-get install -y -qq libssl-dev
 
     # sysinternalsebpf
@@ -87,10 +104,11 @@ install_via_github() {
     dpkg -i /tmp/sysmonforlinux.deb >> "$LOG" 2>&1 || apt-get install -f -y -qq >> "$LOG" 2>&1
 }
 
-# Sélection méthode
-if   [ "$ID" = "debian" ] && [ "${VERSION_ID%%.*}" -ge 13 ]; then install_via_github
-elif [ "$ID" = "debian" ]; then install_via_microsoft_repo "debian" "${VERSION_ID%%.*}"
-elif [ "$ID" = "ubuntu" ]; then install_via_microsoft_repo "ubuntu" "$VERSION_ID"
+# Sélection méthode : repo MS en priorité, GitHub en fallback automatique
+log "Tentative installation via repo Microsoft..."
+if ! install_via_microsoft_repo "$ID" "${VERSION_ID%%.*}"; then
+    log "Repo Microsoft indisponible, bascule sur GitHub..."
+    install_via_github
 fi
 
 command -v sysmon &>/dev/null || { log "ERREUR: sysmon non disponible après install."; exit 1; }
