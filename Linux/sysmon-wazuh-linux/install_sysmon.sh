@@ -1,6 +1,6 @@
 #!/bin/bash
 # =============================================================================
-# install_sysmon.sh - Installation Sysmon for Linux (Oncogard)
+# install_sysmon.sh - Installation Sysmon for Linux
 # Compatible : Debian 11/12/13, Ubuntu 22.04/24.04
 #
 # Stratégie :
